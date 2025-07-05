@@ -2,6 +2,7 @@
 
 # dependencies
 node_modules/
+bun.lock
 
 # Expo
 .expo/
@@ -29,6 +30,9 @@ yarn-error.*
 # macOS
 .DS_Store
 *.pem
+
+# Windows
+thumbs.db
 
 # local env files
 .env*.local
