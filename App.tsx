@@ -1,5 +1,5 @@
 import "expo-dev-client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
 	FlatList,
 	StyleSheet,
@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import * as SplashScreen from "expo-splash-screen";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { initialWindowMetrics, SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Button from "./components/button";
 import color from "./constants/colors";
@@ -22,7 +23,7 @@ import { ExpoDevMenuItem, registerDevMenuItems } from "expo-dev-menu";
 import AsyncStorage, { useAsyncStorage } from "@react-native-async-storage/async-storage";
 import { useAsyncStorageDevTools } from "@dev-plugins/async-storage";
 
-// SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync();
 
 SplashScreen.setOptions({
 	fade: true,
@@ -42,7 +43,7 @@ export default function App() {
 	useAsyncStorageDevTools({ errorHandler: (e) => { console.log("[App.js] -> Error:", e) } });
 
 	const { getItem, removeItem, setItem } = useAsyncStorage("tasks");
-
+	const [loaded, setLoaded] = useState(false);
 	const [tasks, setTasks] = useState<TaskItem[] | undefined>(undefined);
 	const [taskToEdit, setTaskToEdit] = useState<number | undefined>();
 	const [creationModalVisible, setCreationModalVisible] = useState(false);
@@ -52,11 +53,12 @@ export default function App() {
 			if (e !== null) {
 				setTasks(JSON.parse(e));
 			}
+			setLoaded(true);
 		}).catch((err) => console.log("[App.tsx] -> Something went wrong: ", err))
 	}
 
 	async function saveTasks() {
-		await setItem(JSON.stringify(tasks)).then((v) => console.log("[App.tsx] -> Saved successfully: ", tasks))
+		await setItem(JSON.stringify(tasks));
 	}
 
 	function createTask(t: TaskItem) {
@@ -68,7 +70,7 @@ export default function App() {
 	}
 
 	function deleteTask(id: number) {
-		setTasks(prevTasks => prevTasks?.filter((_, idx) => id !== idx));
+		setTasks((prevTasks) => prevTasks?.filter((_, idx) => id !== idx));
 	}
 
 	useEffect(() => {
@@ -101,15 +103,13 @@ export default function App() {
 			{
 				name: "Generate 25 random tasks",
 				callback: () => {
-					for (let i = 0; i <= 25; i++) {
-						setTasks(() => tasks ? [...tasks, {
+					const Arr = Array.from({ length: 25 }, () => {
+						return {
 							title: Math.random().toString(),
 							completed: Math.random() > 0.5 ? true : false,
-						}] : [{
-							title: Math.random().toString(),
-							completed: Math.random() > 0.5 ? true : false,
-						}])
-					}
+						}
+					})
+					setTasks(() => tasks !== undefined ? [...tasks, ...Arr] : [...Arr])
 				},
 				shouldCollapse: true,
 			}
@@ -137,21 +137,23 @@ export default function App() {
 		);
 	};
 
-	// const onLayoutRootView = useCallback(() => {
-	// 	if (loaded) {
-	// 		SplashScreen.hide();
-	// 	}
-	// }, [loaded]);
+	const onLayoutRootView = useCallback(() => {
+		if (loaded) {
+			SplashScreen.hide();
+		}
+	}, [loaded]);
 
-	// if (!loaded) {
-	// 	return null;
-	// }
+	if (!loaded) {
+		return null;
+	}
 
 	return (
+		// <SafeAreaProvider initialMetrics={initialWindowMetrics}>
 		<GestureHandlerRootView
-			// onLayout={onLayoutRootView}
+			onLayout={onLayoutRootView}
 			style={styles.container}
 		>
+
 			{/* this doohickey is to force the modal to rerender again so that the taskToEdit actually goes through */}
 
 			{/* creationModalVisible  */}
@@ -183,8 +185,8 @@ export default function App() {
 					ListEmptyComponent={NoTasks}
 					ListHeaderComponent={ListHeader}
 					ListHeaderComponentStyle={{ width: "100%" }}
-					StickyHeaderComponent={ListHeader}
-					stickyHeaderHiddenOnScroll
+					// StickyHeaderComponent={ListHeader}
+					// stickyHeaderHiddenOnScroll
 					stickyHeaderIndices={[0]}
 				/>
 			</View>
@@ -199,7 +201,9 @@ export default function App() {
 					setCreationModalVisible(true);
 				}}
 			/>
+
 		</GestureHandlerRootView>
+		// </SafeAreaProvider>
 	);
 }
 

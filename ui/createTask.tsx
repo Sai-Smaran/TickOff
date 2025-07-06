@@ -60,9 +60,9 @@ export default function CreateTask({
 			hardwareAccelerated
 			statusBarTranslucent
 			onShow={() => {
-				console.log("[CreateTask] -> editing task of index", taskToEdit);
-				console.log("[CreateTask] ->", tasks !== undefined && taskToEdit !== undefined ? tasks[taskToEdit].title : null);
-				console.log("[CreateTask] ->","Title: "+ title,"Sub-tasks: "+ subTasks);
+				// console.log("[CreateTask] -> editing task of index", taskToEdit);
+				// console.log("[CreateTask] ->", tasks !== undefined && taskToEdit !== undefined ? tasks[taskToEdit].title : null);
+				// console.log("[CreateTask] ->","Title: "+ title,"Sub-tasks: "+ subTasks);
 				inputRef.current?.focus();
 				if (taskToEdit !== undefined) {
 					setTitle(tasks !== undefined && taskToEdit !== undefined ? tasks[taskToEdit].title : "")
@@ -190,23 +190,6 @@ export default function CreateTask({
 					<TouchableOpacity
 						onPress={async () => {
 							if (title?.length !== 0) {
-								
-								// if (taskIDtoEdit) {
-								//   updateTask(taskIDtoEdit, {
-								//     title,
-								//     subTasks: subTaskList,
-								//     //@ts-ignore
-								//     completed: tasks[taskIDtoEdit].completed,
-								//   });
-								// } else {
-								//   createTask({
-								//     title,
-								//     subTasks: subTaskList,
-								//     completed: false,
-								//   });
-								// }
-								// setTitle("");
-								// setSubTasks(undefined);
 								onSubmitEditing(taskToEdit, subTasks !== undefined ? {
 									title,
 									subTasks: subTasks,
