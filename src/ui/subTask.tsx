@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { memo, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import color from "@/constants/colors";
 import CheckBox from "@/components/checkbox";
 
-export default function SubTask({
+function SubTask({
 	title,
 	completed,
 	id: idx,
@@ -30,6 +30,7 @@ export default function SubTask({
 				justifyContent: "space-between",
 				padding: 5,
 			}}
+			removeClippedSubviews
 		>
 			<CheckBox
 				onPress={handlePress}
@@ -57,3 +58,5 @@ const styles = StyleSheet.create({
 		textAlignVertical: "center",
 	},
 });
+
+export default memo(SubTask);

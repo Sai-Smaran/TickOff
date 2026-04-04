@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import {
 	View,
 	Text,
@@ -8,6 +8,7 @@ import {
 	TouchableOpacity,
 	StyleSheet,
 	ScrollView,
+	KeyboardAvoidingView,
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import CheckBox from "../components/checkbox";
@@ -28,7 +29,7 @@ type createTaskProps = {
 			title: string;
 			completed: boolean;
 			subTasks?: { title: string; completed: boolean }[];
-		}
+		},
 	) => void;
 	taskToEdit?: number;
 	tasks: TaskItem[] | undefined;
@@ -55,177 +56,183 @@ export default function CreateTask({
 				setSubTasks(undefined);
 				onRequestClose();
 			}}
-			animationType="slide"
+			animationType="fade"
 			transparent
 			hardwareAccelerated
-			statusBarTranslucent
 			onShow={() => {
 				// console.log("[CreateTask] -> editing task of index", taskToEdit);
 				// console.log("[CreateTask] ->", tasks !== undefined && taskToEdit !== undefined ? tasks[taskToEdit].title : null);
 				// console.log("[CreateTask] ->","Title: "+ title,"Sub-tasks: "+ subTasks);
 				inputRef.current?.focus();
+
 				if (taskToEdit !== undefined) {
-					setTitle(
+					const loadedTitle =
 						tasks !== undefined && taskToEdit !== undefined
 							? tasks[taskToEdit].title
-							: ""
-					);
-					setSubTasks(
+							: "";
+					const loadedSubTasks =
 						tasks !== undefined && taskToEdit !== undefined
 							? tasks[taskToEdit].subTasks
-							: undefined
-					);
+							: undefined;
+
+					setTitle(loadedTitle);
+					setSubTasks(loadedSubTasks);
 				}
 			}}
 		>
-			<GestureHandlerRootView style={{ flex: 1 }}>
-				<Pressable
-					onPress={() => {
-						onRequestClose();
-						setTitle("");
-						setSubTasks(undefined);
-					}}
-					style={styles.background}
-				>
-					<BlurView
-						experimentalBlurMethod="dimezisBlurView"
-						tint="systemMaterialDark"
-						style={{ flex: 1 }}
-					/>
-				</Pressable>
-				<ScrollView style={styles.popup}>
-					<View style={{ flexDirection: "row", width: "100%" }}>
-						<TextInput
-							style={[
-								styles.textinput,
-								{ margin: 20, marginBottom: 0, fontWeight: "bold" },
-							]}
-							numberOfLines={2}
-							multiline
-							cursorColor={color.font}
-							submitBehavior="submit"
-							selectionHandleColor={color.ter}
-							onChangeText={(text) => setTitle(text)}
-							enterKeyHint="enter"
-							textBreakStrategy="highQuality"
-							value={title}
-							placeholderTextColor={color.font}
-							//@ts-ignore
-							color={color.font}
-							maxLength={50}
-							onSubmitEditing={() => {
-								if (title !== "") {
-									setSubTasks((prev) =>
-										prev
-											? [...prev, { title: "", completed: false }]
-											: [{ title: "", completed: false }]
-									);
-								}
-							}}
-							ref={inputRef}
+			<KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
+				<GestureHandlerRootView style={{ flex: 1 }}>
+					<Pressable
+						onPress={() => {
+							onRequestClose();
+							setTitle("");
+							setSubTasks(undefined);
+						}}
+						style={styles.background}
+					>
+						<BlurView
+							experimentalBlurMethod="dimezisBlurView"
+							tint="systemMaterialDark"
+							style={{ width: "100%", height: "100%" }}
 						/>
-					</View>
-					<View style={{ margin: 20, marginTop: 5 }}>
-						{subTasks?.map((task, idx) => {
-							return (
-								<View
-									key={idx}
-									style={{
-										flexDirection: "row",
-										width: "100%",
-										marginTop: 10,
-									}}
-								>
-									<View style={{ padding: 17 }}>
-										<CheckBox
-											checked={task.completed}
-											onPress={() => {
-												setSubTasks((prev) =>
-													prev
-														? prev.map((sTask, id) =>
-																id === idx
-																	? { ...sTask, completed: !sTask.completed }
-																	: sTask
-														  )
-														: undefined
+					</Pressable>
+
+					<ScrollView style={styles.popup}>
+						<View style={{ flexDirection: "row", width: "100%" }}>
+							<TextInput
+								style={[
+									styles.textinput,
+									{ margin: 20, marginBottom: 0, fontWeight: "bold" },
+								]}
+								numberOfLines={2}
+								multiline
+								cursorColor={color.font}
+								submitBehavior="submit"
+								selectionHandleColor={color.ter}
+								onChangeText={(text) => setTitle(text)}
+								enterKeyHint="enter"
+								textBreakStrategy="highQuality"
+								value={title}
+								placeholderTextColor={color.font}
+								//@ts-ignore
+								color={color.font}
+								maxLength={50}
+								onSubmitEditing={() => {
+									if (title !== "") {
+										setSubTasks((prev) =>
+											prev
+												? [...prev, { title: "", completed: false }]
+												: [{ title: "", completed: false }],
+										);
+									}
+								}}
+								ref={inputRef}
+							/>
+						</View>
+						<View style={{ margin: 20, marginTop: 5 }}>
+							{subTasks?.map((task, idx) => {
+								return (
+									<View
+										key={idx}
+										style={{
+											flexDirection: "row",
+											width: "100%",
+											marginTop: 10,
+										}}
+									>
+										<View style={{ padding: 17 }}>
+											<CheckBox
+												checked={task.completed}
+												onPress={() => {
+													setSubTasks((prev) =>
+														prev
+															? prev.map((sTask, id) =>
+																	id === idx
+																		? { ...sTask, completed: !sTask.completed }
+																		: sTask,
+																)
+															: undefined,
+													);
+												}}
+												additionalStyles={{ margin: 10 }}
+											/>
+										</View>
+										<TextInput
+											style={styles.textinput}
+											multiline
+											numberOfLines={3}
+											cursorColor={color.font}
+											enterKeyHint="enter"
+											submitBehavior="submit"
+											//@ts-ignore
+											color={color.font}
+											selectionHandleColor={color.ter}
+											autoFocus
+											value={task.title}
+											maxLength={60}
+											textBreakStrategy="highQuality"
+											onChangeText={(text) => {
+												setSubTasks((pre) =>
+													pre
+														? pre.map((sTask, id) =>
+																id === idx ? { ...task, title: text } : sTask,
+															)
+														: undefined,
 												);
 											}}
-											additionalStyles={{ margin: 10 }}
+											onEndEditing={() => {
+												if (task.title.length === 0) {
+													setSubTasks([
+														...subTasks.slice(0, idx),
+														...subTasks.slice(idx + 1),
+													]);
+												}
+											}}
+											onSubmitEditing={() => {
+												if (task.title !== "") {
+													setSubTasks((prev) =>
+														prev
+															? [...prev, { title: "", completed: false }]
+															: [{ title: "", completed: false }],
+													);
+												}
+											}}
 										/>
 									</View>
-									<TextInput
-										style={styles.textinput}
-										multiline
-										numberOfLines={3}
-										cursorColor={color.font}
-										enterKeyHint="enter"
-										submitBehavior="submit"
-										//@ts-ignore
-										color={color.font}
-										selectionHandleColor={color.ter}
-										autoFocus
-										value={task.title}
-										maxLength={60}
-										textBreakStrategy="highQuality"
-										onChangeText={(text) => {
-											setSubTasks((pre) =>
-												pre
-													? pre.map((sTask, id) =>
-															id === idx ? { ...task, title: text } : sTask
-													  )
-													: undefined
-											);
-										}}
-										onEndEditing={() => {
-											if (task.title.length === 0) {
-												setSubTasks([
-													...subTasks.slice(0, idx),
-													...subTasks.slice(idx + 1),
-												]);
-											}
-										}}
-										onSubmitEditing={() => {
-											if (task.title !== "") {
-												setSubTasks((prev) =>
-													prev
-														? [...prev, { title: "", completed: false }]
-														: [{ title: "", completed: false }]
-												);
-											}
-										}}
-									/>
-								</View>
-							);
-						})}
-					</View>
-					<TouchableOpacity
-						onPress={async () => {
-							if (title?.length !== 0) {
-								onSubmitEditing(
-									taskToEdit,
-									subTasks !== undefined
-										? {
-												title,
-												subTasks: subTasks,
-												completed: false,
-										  }
-										: { title, completed: false }
 								);
+							})}
+						</View>
+						<TouchableOpacity
+							onPress={async () => {
+								if (title?.length !== 0) {
+									
+									const editedTask =
+										subTasks !== undefined
+											? {
+													title,
+													subTasks: subTasks,
+													completed: false,
+												}
+											: { title, completed: false };
 
-								setTitle("");
-								setSubTasks(undefined);
-							}
-						}}
-						hitSlop={25}
-						style={{
-							padding: 10,
-							flexDirection: "row-reverse",
-						}}
-					>
-						<Text style={styles.doneTxt}>Done</Text>
-					</TouchableOpacity>
-				</ScrollView>
-			</GestureHandlerRootView>
+									onSubmitEditing(taskToEdit, editedTask);
+
+									// Cleanup
+									setTitle("");
+									setSubTasks(undefined);
+								}
+							}}
+							hitSlop={25}
+							style={{
+								padding: 10,
+								flexDirection: "row-reverse",
+							}}
+						>
+							<Text style={styles.doneTxt}>Done</Text>
+						</TouchableOpacity>
+					</ScrollView>
+				</GestureHandlerRootView>
+			</KeyboardAvoidingView>
 		</Modal>
 	);
 }

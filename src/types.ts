@@ -4,7 +4,7 @@ export type TaskItem = {
 	subTasks?: {
 		title: string;
 		completed: boolean;
-	}[]
+	}[];
 };
 
 export type MinifiedTaskItem = {
@@ -13,5 +13,5 @@ export type MinifiedTaskItem = {
 	s?: {
 		t: string;
 		c: boolean;
-	}[]
-}
+	}[];
+};

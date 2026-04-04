@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { Text, StyleSheet, Pressable, View } from "react-native";
 import Animated, {
 	useAnimatedStyle,
@@ -14,11 +14,6 @@ import Swipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import color from "../constants/colors";
 import type { TaskItem } from "@/types";
 
-// The sheer number of @ts-ignore here is just embarrasing.
-// but there is no other choice to shut the TypeScript warnings
-// Poor TS doesn't know that the subTasks checks will never run
-// because the button that runs the subTasks array check, will be hidden when there are no sub tasks.
-
 type TaskTypes = {
 	mainTask: TaskItem;
 	onPress: ({ title, completed, subTasks }: TaskItem) => void;
@@ -30,13 +25,7 @@ type TaskTypes = {
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-export default function Task({
-	mainTask,
-	onPress,
-	onDelete,
-	onCheck,
-	onShare,
-}: TaskTypes) {
+function Task({ mainTask, onPress, onDelete, onCheck, onShare }: TaskTypes) {
 	const [selected, setSelected] = useState<boolean | null>(false);
 	const [completed, setCompleted] = useState(mainTask.completed);
 	const [subTasks, setSubTask] = useState(mainTask.subTasks);
@@ -59,25 +48,33 @@ export default function Task({
 		}
 	}, [completed, subTasks]);
 
+	/*
+		The sheer number of @ts-ignore here is just embarrasing.
+		but there is no other choice to shut the TypeScript warnings
+		Poor TS doesn't know that the subTasks checks will never run
+		because the button that runs the subTasks array check, will be hidden when there are no sub tasks.
+	*/
+
 	const anStyle = useAnimatedStyle(() => {
 		taskHeight.value = withTiming(
 			selected === true
 				? //@ts-ignore
-				  subTasks.length * 75 + 90
-					: selected === false
+					subTasks.length * 75 + 90
+				: selected === false
 					? 75
-				: 0,
+					: 0,
 			{
 				duration: 100,
-			}
+			},
 		);
+
 		opacity.value = withTiming(selected === null ? 0 : 1, { duration: 100 });
 		return {
 			//@ts-ignore
 			height: taskHeight.value,
 			opacity: opacity.value,
 		};
-	}, [selected, subTasks, taskHeight, opacity]);
+	}, [selected]);
 
 	const dropdownAn = useAnimatedStyle(() => {
 		return {
@@ -85,7 +82,7 @@ export default function Task({
 				{
 					rotate: withDelay(
 						100,
-						withTiming(selected ? "180deg" : "0deg", { duration: 150 })
+						withTiming(selected ? "180deg" : "0deg", { duration: 150 }),
 					),
 				},
 			],
@@ -98,17 +95,20 @@ export default function Task({
 		};
 	}, [selected]);
 
+	const handleSubTaskToggle = (id: number): void => {
+		// "Man, I hate AI."
+		// *Proceeds to use AI to write the following abysmal code:*
+		setSubTask((prev) =>
+			prev?.map((subTask, index) =>
+				index === id ? { ...subTask, completed: !subTask.completed } : subTask,
+			),
+		);
+	};
+
 	return (
 		<Swipeable
 			onSwipeableOpenStartDrag={() => setSelected(false)}
 			renderRightActions={(p, x) => {
-				// return RightAction(p, x, () => {
-				// 	setSelected(null);
-				// 	setTimeout(() => {
-				// 		setSelected(false);
-				// 		onDelete();
-				// 	}, 200);
-				// });
 				return (
 					<RightAction
 						_dragX={x}
@@ -117,7 +117,7 @@ export default function Task({
 							setSelected(null);
 							setTimeout(() => {
 								onDelete();
-							}, 200);
+							}, 250);
 						}}
 						onShare={onShare}
 					/>
@@ -147,44 +147,23 @@ export default function Task({
 					>
 						{mainTask.title}
 					</Text>
-					{/* @ts-ignore */}
-					{mainTask.subTasks?.length > 0 ? (
+					{ subTasks && subTasks.length > 0 ? (
 						<AnimatedPressable
 							hitSlop={25}
 							style={[styles.dropdown, dropdownAn]}
 							onPress={() => {
 								setSelected((p) => !p);
 							}}
+							renderToHardwareTextureAndroid
 						>
-							<AntDesign
-								name="circledown"
-								color={color.ter}
-								size={25}
-								style={
-									{
-										// filter: "drop-shadow(0px 0px 5px " + color.pri + ");",
-									}
-								}
-							/>
+							<AntDesign name="down" color={color.ter} size={25} />
 						</AnimatedPressable>
 					) : null}
 				</Pressable>
-				{selected ? (
+				{selected && subTasks ? (
 					<Animated.View style={[{ margin: 20, marginTop: 5 }, subTasksAn]}>
 						{/* @ts-ignore */}
-						{mainTask.subTasks.map((item, idx) => {
-							const handleSubTaskToggle = (id: number): void => {
-								// "Man, I hate AI."
-								// *Proceeds to use AI to write the following code:*
-								setSubTask((prev) =>
-									prev?.map((subTask, index) =>
-										index === id
-											? { ...subTask, completed: !subTask.completed }
-											: subTask
-									)
-								);
-							};
-
+						{subTasks.map((item, idx) => {
 							return (
 								<SubTask
 									title={item.title}
@@ -240,22 +219,21 @@ function RightAction({
 	const animatedStyle = useAnimatedStyle(() => {
 		return {
 			width: -_dragX.value,
-			left: _progress.value >= 1 ? -(_progress.value * 100 - 100) : 0,
+			right: -(_progress.value * 100) + 100,
 		};
-	}, [_dragX, _progress]);
+	}, [_progress]);
 
 	return (
 		<View
 			style={{
 				width: 150,
-				height: 90,
-				// margin: 10,
+				height: 100,
 			}}
 		>
 			<Animated.View
 				style={[
 					{
-						height: 90,
+						height: 100,
 						justifyContent: "space-evenly",
 						alignItems: "center",
 						flexDirection: "row",
@@ -301,3 +279,5 @@ function RightAction({
 		</View>
 	);
 }
+
+export default memo(Task);

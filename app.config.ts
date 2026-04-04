@@ -34,12 +34,7 @@ const appConfig: ExpoConfig = {
 				imageWidth: 200,
 			},
 		],
-		[
-			"expo-router",
-			{
-				sitemap: false,
-			},
-		],
+		["expo-router"],
 	],
 	ios: {
 		supportsTablet: true,
@@ -50,6 +45,7 @@ const appConfig: ExpoConfig = {
 			backgroundImage: "./assets/adaptive-icon-background.png",
 			monochromeImage: "./assets/mono-icon.png",
 			backgroundColor: "#021526",
+			
 		},
 		edgeToEdgeEnabled: true,
 		package:

@@ -3,11 +3,11 @@ import { FontAwesome6 } from "@expo/vector-icons";
 import Animated, {
 	Easing,
 	interpolateColor,
-	runOnJS,
 	useAnimatedStyle,
 	useSharedValue,
 	withTiming,
 } from "react-native-reanimated";
+import { scheduleOnRN } from "react-native-worklets";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import color from "@/constants/colors";
 
@@ -34,31 +34,31 @@ export default function CheckBox({
 				colour.value,
 				[0, 1],
 				[color.ter, "transparent"],
-				"RGB"
+				"RGB",
 			),
 		};
-	}, [scale, colour]);
+	}, []);
 
 	const gesture = Gesture.Tap()
 		.onBegin(() => {
 			if (!disabled) {
-				scale.value = withTiming(0.75, { duration: 125 });
+				// scale.value = withTiming(0.75, { duration: 125 });
 			}
 		})
 		.onFinalize(() => {
 			if (!disabled) {
 				colour.value = withTiming(completed ? 1 : 0, { duration: 200 });
-				scale.value = withTiming(1, {
-					duration: 175,
-					easing: Easing.in(Easing.cubic),
-				});
+				// scale.value = withTiming(1, {
+					// duration: 175,
+					// easing: Easing.in(Easing.cubic),
+				// });
 
-				onPress !== undefined && runOnJS(onPress)();
+				onPress !== undefined && scheduleOnRN(onPress);
 			}
 		});
 
 	return (
-		<Pressable>
+		<Pressable renderToHardwareTextureAndroid>
 			<GestureDetector gesture={gesture}>
 				<Animated.View
 					style={[styles.container, additionalStyles, !disabled && anStyle]}

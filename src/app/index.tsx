@@ -1,5 +1,5 @@
 import "expo-dev-client";
-import { useCallback, useState, useMemo } from "react";
+import { useCallback, useState, useMemo, memo } from "react";
 import { registerRootComponent } from "expo";
 import {
 	ActivityIndicator,
@@ -69,9 +69,9 @@ export default function Index() {
 			.catch((err) => console.log("[App.tsx] -> Something went wrong: ", err));
 	}
 
-	async function saveTasks() {
+	const saveTasks = useCallback(async () => {
 		await setItem(JSON.stringify(tasks));
-	}
+	}, [tasks]);
 
 	function createTask(t?: TaskItem) {
 		t && setTasks(() => (tasks ? [...tasks, t] : [t]));
@@ -79,7 +79,7 @@ export default function Index() {
 
 	function updateTask(id: number, replacement: TaskItem) {
 		setTasks((prevTasks) =>
-			prevTasks?.map((prev, idx) => (id === idx ? replacement : prev))
+			prevTasks?.map((prev, idx) => (id === idx ? replacement : prev)),
 		);
 	}
 
@@ -88,35 +88,23 @@ export default function Index() {
 	}
 
 	const parseTasks = useCallback((): MinifiedTaskItem | undefined => {
-		console.log(newSharedTasks);
+		// console.log("[parseTasks] ->",newSharedTasks);
 		if (newSharedTasks === undefined || newSharedTasks === null) {
 			return;
 		}
 
 		let decodedData: string;
+		let sharedTask: MinifiedTaskItem;
 		try {
 			decodedData = Base64.decode(UTF8.decode(newSharedTasks));
-		} catch (e) {
-			console.log(e);
-			ToastAndroid.showWithGravity(
-				"Unable to retrieve tasks from link.",
-				ToastAndroid.LONG,
-				1
-			);
-			return;
-		}
 
-		let sharedTask: MinifiedTaskItem;
-
-		// A janky check for a JSON-ifyable string
-		try {
 			sharedTask = JSON.parse(decodedData);
 		} catch (e) {
 			console.log(e);
 			ToastAndroid.showWithGravity(
 				"Unable to retrieve tasks from link.",
 				ToastAndroid.LONG,
-				1
+				1,
 			);
 			return;
 		}
@@ -139,14 +127,14 @@ export default function Index() {
 					ToastAndroid.showWithGravity(
 						"Unable to retrieve tasks from link",
 						ToastAndroid.LONG,
-						1
+						1,
 					);
 				}
 			} else {
 				ToastAndroid.showWithGravity(
 					"Unable to retrieve tasks from link",
 					ToastAndroid.LONG,
-					1
+					1,
 				);
 			}
 		}
@@ -162,7 +150,7 @@ export default function Index() {
 		}
 	}
 
-	const handleShare = useCallback(({ taskItem }: { taskItem: TaskItem }) => {
+	const handleShare = ({ taskItem }: { taskItem: TaskItem }) => {
 		console.log("Sharing");
 		let subTasksMinified: { t: string; c: boolean }[] = [];
 		taskItem.subTasks?.forEach((val) => {
@@ -179,43 +167,42 @@ export default function Index() {
 		Share.share({
 			message: "tickoff://?tasks=" + encodedTaskItem,
 		});
-	}, []);
+	};
 
-	const handleAcceptSharedTask = useCallback(
-		(minifiedTask: MinifiedTaskItem) => {
-			let restoredSubTasks: { title: string; completed: boolean }[] = [];
-			minifiedTask.s?.forEach((val) => {
-				restoredSubTasks.push({ title: val.t, completed: val.c });
-			});
-			const finalSharedTask: TaskItem = {
-				title: minifiedTask.t,
-				completed: minifiedTask.c,
-				subTasks: restoredSubTasks,
-			};
-			createTask(finalSharedTask);
-			setSharedTaskPromptVisible(false);
-		},
-		[]
-	);
+	const handleAcceptSharedTask = (minifiedTask: MinifiedTaskItem) => {
+		let restoredSubTasks: { title: string; completed: boolean }[] = [];
+		minifiedTask.s?.forEach((val) => {
+			restoredSubTasks.push({ title: val.t, completed: val.c });
+		});
+		const finalSharedTask: TaskItem = {
+			title: minifiedTask.t,
+			completed: minifiedTask.c,
+			subTasks: restoredSubTasks,
+		};
+		createTask(finalSharedTask);
+		setSharedTaskPromptVisible(false);
+	};
 
 	useFocusEffect(
 		useCallback(() => {
 			fetchTasks();
 			handleTaskParams();
-		}, [])
+		}, []),
 	);
 
 	useFocusEffect(useCallback(() => handleTaskParams(), [newSharedTasks]));
 
 	useFocusEffect(
 		useCallback(() => {
-			saveTasks();
+			tasks && saveTasks();
+
+			// if (!__DEV__) return;
 			const devMenuItems: ExpoDevMenuItem[] = [
 				{
 					name: "Clear tasks",
 					callback: () => {
 						removeItem().then(() =>
-							console.log("Wiped local store successfully")
+							console.log("Wiped local store successfully"),
 						);
 						setTasks(undefined);
 					},
@@ -225,7 +212,7 @@ export default function Index() {
 					name: "Dump locally stored task list in logs",
 					callback: () => {
 						AsyncStorage.getItem("tasks").then((e) =>
-							console.log(e && JSON.parse(e))
+							console.log(e && JSON.parse(e)),
 						);
 					},
 					shouldCollapse: false,
@@ -247,14 +234,14 @@ export default function Index() {
 							};
 						});
 						setTasks(() =>
-							tasks !== undefined ? [...tasks, ...Arr] : [...Arr]
+							tasks !== undefined ? [...tasks, ...Arr] : [...Arr],
 						);
 					},
 					shouldCollapse: true,
 				},
 			];
 			registerDevMenuItems(devMenuItems);
-		}, [tasks])
+		}, [tasks]),
 	);
 
 	const RI = useCallback(
@@ -275,7 +262,7 @@ export default function Index() {
 				}}
 			/>
 		),
-		[]
+		[],
 	);
 
 	const onLayoutRootView = useCallback(() => {
@@ -299,7 +286,7 @@ export default function Index() {
 		);
 	}
 
-	// I cannot memoise this function, as memoising this gives me an error
+	// Unable to memoise this function, as memoising this gives me an error
 	// "Rendered more hooks than previous render"
 	const keyExtractor = (item: TaskItem, index: number) =>
 		`${index}-${item.title}`;
@@ -309,24 +296,26 @@ export default function Index() {
 			onLayout={onLayoutRootView}
 			style={styles.container}
 		>
-			<CreateTask
-				onRequestClose={() => {
-					setCreationModalVisible(false);
-					setTaskToEdit(() => undefined);
-				}}
-				visibility={creationModalVisible}
-				onSubmitEditing={(i, newTask) => {
-					if (i !== undefined) {
-						updateTask(i, newTask);
-					} else {
-						createTask(newTask);
-					}
-					setCreationModalVisible(() => false);
-					setTaskToEdit(() => undefined);
-				}}
-				taskToEdit={taskToEdit}
-				tasks={tasks}
-			/>
+			{creationModalVisible && (
+				<CreateTask
+					onRequestClose={() => {
+						setCreationModalVisible(false);
+						setTaskToEdit(() => undefined);
+					}}
+					visibility={creationModalVisible}
+					onSubmitEditing={(i, newTask) => {
+						if (i !== undefined) {
+							updateTask(i, newTask);
+						} else {
+							createTask(newTask);
+						}
+						setCreationModalVisible(() => false);
+						setTaskToEdit(() => undefined);
+					}}
+					taskToEdit={taskToEdit}
+					tasks={tasks}
+				/>
+			)}
 			<SharedTaskPrompt
 				visible={sharedTaskPromptVisible}
 				taskToAdd={
@@ -341,14 +330,16 @@ export default function Index() {
 				<FlatList
 					contentContainerStyle={{ flexGrow: 1 }}
 					data={tasks}
+					initialNumToRender={9}
 					renderItem={RI}
-					removeClippedSubviews={false}
+					removeClippedSubviews
 					keyExtractor={keyExtractor}
 					ListEmptyComponent={NoTasks}
 					ListHeaderComponent={ListHeader}
 					ListHeaderComponentStyle={{ width: "100%" }}
 					// StickyHeaderComponent={ListHeader}
-					// stickyHeaderHiddenOnScroll
+					stickyHeaderHiddenOnScroll
+					maxToRenderPerBatch={15}
 					stickyHeaderIndices={[0]}
 				/>
 			</View>
@@ -377,26 +368,29 @@ const styles = StyleSheet.create({
 	},
 });
 
-function ListHeader() {
-	return (
-		<View
-			style={{
-				padding: 50,
-				paddingLeft: 30,
-				experimental_backgroundImage: [
-					{
-						type: "linearGradient",
-						colorStops: [{ color: color.sec }, { color: "transparent" }],
-					},
-				],
-			}}
-		>
-			<Text style={{ color: color.font, fontSize: 35, fontWeight: "100" }}>
-				Tasks
-			</Text>
-		</View>
-	);
-}
+const ListHeader = memo(
+	function () {
+		return (
+			<View
+				style={{
+					padding: 50,
+					paddingLeft: 30,
+					experimental_backgroundImage: [
+						{
+							type: "linear-gradient",
+							colorStops: [{ color: color.sec }, { color: "transparent" }],
+						},
+					],
+				}}
+			>
+				<Text style={{ color: color.font, fontSize: 35, fontWeight: "100" }}>
+					Tasks
+				</Text>
+			</View>
+		);
+	},
+	() => true,
+);
 
 export function AppEntry() {
 	// Dynamically get the app directory context for ExpoRoot
