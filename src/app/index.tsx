@@ -62,7 +62,7 @@ export default function Index() {
 		await getItem()
 			.then((e) => {
 				if (e !== null) {
-					setTasks(JSON.parse(e));
+					setTasks(() => JSON.parse(e));
 				}
 				setLoaded(true);
 			})
@@ -74,7 +74,8 @@ export default function Index() {
 	}, [tasks]);
 
 	function createTask(t?: TaskItem) {
-		t && setTasks(() => (tasks ? [...tasks, t] : [t]));
+		// t && setTasks(() => (tasks ? [...tasks, t] : [t]));
+		t && setTasks(() => (tasks ? tasks.concat(t) : [t]));
 	}
 
 	function updateTask(id: number, replacement: TaskItem) {
@@ -84,7 +85,11 @@ export default function Index() {
 	}
 
 	function deleteTask(id: number) {
-		setTasks((prevTasks) => prevTasks?.filter((_, idx) => id !== idx));
+		// setTasks((prevTasks) => prevTasks?.filter((_, idx) => id !== idx));
+		setTasks((prevTasks) =>
+			// Similar to [...prevTasks?.slice(0, id), ...prevTasks.slice(id + 1)]
+			prevTasks?.slice(0, id).concat(prevTasks.slice(id + 1)),
+		);
 	}
 
 	const parseTasks = useCallback((): MinifiedTaskItem | undefined => {
@@ -95,12 +100,12 @@ export default function Index() {
 
 		let decodedData: string;
 		let sharedTask: MinifiedTaskItem;
+
 		try {
 			decodedData = Base64.decode(UTF8.decode(newSharedTasks));
-
 			sharedTask = JSON.parse(decodedData);
 		} catch (e) {
-			console.log(e);
+			console.warn(e);
 			ToastAndroid.showWithGravity(
 				"Unable to retrieve tasks from link.",
 				ToastAndroid.LONG,
@@ -116,11 +121,18 @@ export default function Index() {
 				return sharedTask;
 			} else if (Array.isArray(sharedTask.s)) {
 				let subTasksValuationPassed = true;
-				sharedTask.s.forEach((value) => {
-					if (!(typeof value.t === "string" && typeof value.c === "boolean")) {
+
+				for (let i = 0, len = sharedTask.s.length; i < len; ++i) {
+					if (
+						!(
+							typeof sharedTask.s[i].t === "string" &&
+							typeof sharedTask.s[i].c === "boolean"
+						)
+					) {
 						subTasksValuationPassed = false;
+						break;
 					}
-				});
+				}
 				if (subTasksValuationPassed) {
 					return sharedTask;
 				} else {
@@ -144,6 +156,7 @@ export default function Index() {
 
 	function handleTaskParams() {
 		const newURLTasks = parseTasks();
+
 		if (newURLTasks !== undefined) {
 			setURLSharedTask(newURLTasks);
 			setSharedTaskPromptVisible(true);
@@ -153,9 +166,21 @@ export default function Index() {
 	const handleShare = ({ taskItem }: { taskItem: TaskItem }) => {
 		console.log("Sharing");
 		let subTasksMinified: { t: string; c: boolean }[] = [];
-		taskItem.subTasks?.forEach((val) => {
-			subTasksMinified.push({ t: val.title, c: val.completed });
-		});
+		const subTasks = taskItem.subTasks;
+
+		// taskItem.subTasks?.forEach((val) => {
+		// subTasksMinified.push({ t: val.title, c: val.completed });
+		// });
+
+		if (subTasks) {
+			for (let i = 0, len = subTasks.length; i < len; i++) {
+				subTasksMinified[i] = {
+					t: subTasks[i].title,
+					c: subTasks[i].completed,
+				};
+			}
+		}
+
 		let minifiedTask: MinifiedTaskItem = {
 			t: taskItem.title,
 			c: taskItem.completed,
@@ -169,11 +194,25 @@ export default function Index() {
 		});
 	};
 
-	const handleAcceptSharedTask = (minifiedTask: MinifiedTaskItem) => {
+	const handleShareTaskConversion = (minifiedTask: MinifiedTaskItem) => {
 		let restoredSubTasks: { title: string; completed: boolean }[] = [];
-		minifiedTask.s?.forEach((val) => {
-			restoredSubTasks.push({ title: val.t, completed: val.c });
-		});
+		const minifiedSubTask = minifiedTask.s;
+
+		if (minifiedSubTask) {
+			const minifiedSubTasklength = minifiedSubTask.length;
+
+			for (let i = 0; i < minifiedSubTasklength; i++) {
+				restoredSubTasks[i] = {
+					title: minifiedSubTask[i].t,
+					completed: minifiedSubTask[i].c,
+				};
+			}
+		}
+
+		// minifiedTask.s?.forEach((val) => {
+		// restoredSubTasks.push({ title: val.t, completed: val.c });
+		// });
+
 		const finalSharedTask: TaskItem = {
 			title: minifiedTask.t,
 			completed: minifiedTask.c,
@@ -233,9 +272,26 @@ export default function Index() {
 								completed: Math.random() > 0.5 ? true : false,
 							};
 						});
-						setTasks(() =>
-							tasks !== undefined ? [...tasks, ...Arr] : [...Arr],
-						);
+						setTasks(() => (tasks ? tasks.concat(Arr) : Arr));
+					},
+					shouldCollapse: true,
+				},
+				{
+					name: "Generate 25 random tasks with sub tasks",
+					callback: () => {
+						const Arr = Array.from({ length: 25 }, () => {
+							return {
+								title: Math.random().toString(),
+								completed: Math.random() > 0.5 ? true : false,
+								subTasks: Array.from({ length: 5 }, () => {
+									return {
+										title: Math.random().toString(),
+										completed: Math.random() > 0.5 ? true : false,
+									};
+								}),
+							};
+						});
+						setTasks(() => (tasks ? tasks.concat(Arr) : Arr));
 					},
 					shouldCollapse: true,
 				},
@@ -323,7 +379,7 @@ export default function Index() {
 				}
 				onRequestClose={() => setSharedTaskPromptVisible((prev) => !prev)}
 				onAccept={() => {
-					URLsharedTask && handleAcceptSharedTask(URLsharedTask);
+					URLsharedTask && handleShareTaskConversion(URLsharedTask);
 				}}
 			/>
 			<View style={{ flexGrow: 1 }}>
@@ -368,38 +424,34 @@ const styles = StyleSheet.create({
 	},
 });
 
-const ListHeader = memo(
-	function () {
-		return (
-			<View
-				style={{
-					padding: 50,
-					paddingLeft: 30,
-					experimental_backgroundImage: [
-						{
-							type: "linear-gradient",
-							colorStops: [{ color: color.sec }, { color: "transparent" }],
-						},
-					],
-				}}
-			>
-				<Text style={{ color: color.font, fontSize: 35, fontWeight: "100" }}>
-					Tasks
-				</Text>
-			</View>
-		);
-	},
-	() => true,
-);
+const ListHeader = memo(() => (
+	<View
+		style={{
+			padding: 50,
+			paddingLeft: 30,
+			experimental_backgroundImage: [
+				{
+					type: "linear-gradient",
+					colorStops: [{ color: color.sec }, { color: "transparent" }],
+				},
+			],
+		}}
+	>
+		<Text style={{ color: color.font, fontSize: 35, fontWeight: "100" }}>
+			Tasks
+		</Text>
+	</View>
+));
 
 export function AppEntry() {
 	// Dynamically get the app directory context for ExpoRoot
-	const ctx = useMemo(() => {
+	const ctx = useCallback(() => {
 		// For Metro bundler (React Native), require.context is polyfilled by expo-router
 		// This will work for Expo SDK 49+
 		// @ts-ignore
 		return require.context("./app", true, /[jt]sx?$/);
 	}, []);
+	// @ts-ignore
 	return <ExpoRoot context={ctx} />;
 }
 

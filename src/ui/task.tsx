@@ -13,6 +13,7 @@ import CheckBox from "../components/checkbox";
 import Swipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import color from "../constants/colors";
 import type { TaskItem } from "@/types";
+import { scheduleOnRN } from "react-native-worklets";
 
 type TaskTypes = {
 	mainTask: TaskItem;
@@ -73,6 +74,8 @@ function Task({ mainTask, onPress, onDelete, onCheck, onShare }: TaskTypes) {
 			//@ts-ignore
 			height: taskHeight.value,
 			opacity: opacity.value,
+			marginTop: withTiming(selected !== null ? 10 : 0, { duration: 100 }),
+			marginBottom: withTiming(selected !== null ? 10 : 0, { duration: 100 }),
 		};
 	}, [selected]);
 
@@ -115,11 +118,9 @@ function Task({ mainTask, onPress, onDelete, onCheck, onShare }: TaskTypes) {
 						_progress={p}
 						onDelete={() => {
 							setSelected(null);
-							setTimeout(() => {
-								onDelete();
-							}, 250);
+							scheduleOnRN(onDelete);
 						}}
-						onShare={onShare}
+						onShare={() => scheduleOnRN(onShare)}
 					/>
 				);
 			}}
@@ -147,7 +148,7 @@ function Task({ mainTask, onPress, onDelete, onCheck, onShare }: TaskTypes) {
 					>
 						{mainTask.title}
 					</Text>
-					{ subTasks && subTasks.length > 0 ? (
+					{subTasks && subTasks.length > 0 ? (
 						<AnimatedPressable
 							hitSlop={25}
 							style={[styles.dropdown, dropdownAn]}
@@ -187,7 +188,8 @@ const styles = StyleSheet.create({
 	main: {
 		backgroundColor: color.sec,
 		borderRadius: 10,
-		margin: 10,
+		marginLeft: 10,
+		marginRight: 10,
 	},
 	title: {
 		paddingTop: 10,
