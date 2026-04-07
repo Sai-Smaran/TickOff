@@ -122,7 +122,7 @@ export default function CreateTask({
 									if (title !== "") {
 										setSubTasks((prev) =>
 											prev
-												? [...prev, { title: "", completed: false }]
+												? prev.concat({ title: "", completed: false })
 												: [{ title: "", completed: false }],
 										);
 									}
@@ -177,26 +177,23 @@ export default function CreateTask({
 												setSubTasks((pre) =>
 													pre
 														? pre.map((sTask, id) =>
-																id === idx
-																	? { ...task, title: text }
-																	: sTask,
+																id === idx ? { ...task, title: text } : sTask,
 															)
 														: undefined,
 												);
 											}}
 											onEndEditing={() => {
 												if (task.title.length === 0) {
-													setSubTasks([
-														...subTasks.slice(0, idx),
-														...subTasks.slice(idx + 1),
-													]);
+													setSubTasks((prev) =>
+														prev?.slice(0, idx).concat(prev.slice(idx + 1)),
+													);
 												}
 											}}
 											onSubmitEditing={() => {
 												if (task.title !== "") {
 													setSubTasks((prev) =>
 														prev
-															? [...prev, { title: "", completed: false }]
+															? prev.concat({ title: "", completed: false })
 															: [{ title: "", completed: false }],
 													);
 												}
