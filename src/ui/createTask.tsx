@@ -63,7 +63,7 @@ export default function CreateTask({
 				// console.log("[CreateTask] -> editing task of index", taskToEdit);
 				// console.log("[CreateTask] ->", tasks !== undefined && taskToEdit !== undefined ? tasks[taskToEdit].title : null);
 				// console.log("[CreateTask] ->","Title: "+ title,"Sub-tasks: "+ subTasks);
-				inputRef.current?.focus();
+				setTimeout(() => inputRef.current?.focus(), 50);
 
 				if (taskToEdit !== undefined) {
 					const loadedTitle =
@@ -205,7 +205,6 @@ export default function CreateTask({
 						<TouchableOpacity
 							onPress={async () => {
 								if (title?.length !== 0) {
-									
 									const editedTask =
 										subTasks !== undefined
 											? {
