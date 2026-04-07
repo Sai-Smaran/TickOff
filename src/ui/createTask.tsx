@@ -100,23 +100,24 @@ export default function CreateTask({
 					<ScrollView style={styles.popup}>
 						<View style={{ flexDirection: "row", width: "100%" }}>
 							<TextInput
+								textBreakStrategy="highQuality"
 								style={[
 									styles.textinput,
 									{ margin: 20, marginBottom: 0, fontWeight: "bold" },
 								]}
 								numberOfLines={2}
 								multiline
-								cursorColor={color.font}
-								submitBehavior="submit"
-								selectionHandleColor={color.ter}
 								onChangeText={(text) => setTitle(text)}
+								submitBehavior="submit"
 								enterKeyHint="enter"
-								textBreakStrategy="highQuality"
-								value={title}
+								cursorColor={color.ter}
+								selectionHandleColor={color.sec}
+								selectionColor={color.sec}
 								placeholderTextColor={color.font}
 								//@ts-ignore
 								color={color.font}
 								maxLength={50}
+								value={title}
 								onSubmitEditing={() => {
 									if (title !== "") {
 										setSubTasks((prev) =>
@@ -161,12 +162,13 @@ export default function CreateTask({
 											style={styles.textinput}
 											multiline
 											numberOfLines={3}
-											cursorColor={color.font}
+											cursorColor={color.ter}
 											enterKeyHint="enter"
 											submitBehavior="submit"
 											//@ts-ignore
 											color={color.font}
-											selectionHandleColor={color.ter}
+											selectionHandleColor={color.sec}
+											selectionColor={color.sec}
 											autoFocus
 											value={task.title}
 											maxLength={60}
@@ -175,7 +177,9 @@ export default function CreateTask({
 												setSubTasks((pre) =>
 													pre
 														? pre.map((sTask, id) =>
-																id === idx ? { ...task, title: text } : sTask,
+																id === idx
+																	? { ...task, title: text }
+																	: sTask,
 															)
 														: undefined,
 												);
