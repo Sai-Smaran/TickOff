@@ -91,7 +91,7 @@ export default function CreateTask({
 						style={styles.background}
 					>
 						<BlurView
-							experimentalBlurMethod="dimezisBlurView"
+							blurMethod="none"
 							tint="systemMaterialDark"
 							style={{ width: "100%", height: "100%" }}
 						/>
