@@ -1,44 +1,44 @@
 {
-  "name": "tickoff",
-  "version": "0.0.5-alpha",
-  "main": "expo-router/entry",
-  "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web"
-  },
-  "dependencies": {
-    "@dev-plugins/async-storage": "^0.3.1",
-    "@react-native-async-storage/async-storage": "2.2.0",
-    "base-64": "^1.0.0",
-    "expo": "54",
-    "expo-blur": "~15.0.8",
-    "expo-constants": "~18.0.13",
-    "expo-dev-client": "~6.0.20",
-    "expo-font": "~14.0.11",
-    "expo-linking": "~8.0.11",
-    "expo-navigation-bar": "~5.0.10",
-    "expo-router": "~6.0.23",
-    "expo-splash-screen": "~31.0.13",
-    "expo-status-bar": "~3.0.9",
-    "expo-updates": "~29.0.16",
-    "react": "19.1.0",
-    "react-native": "0.81.5",
-    "react-native-gesture-handler": "~2.28.0",
-    "react-native-reanimated": "~4.1.1",
-    "react-native-safe-area-context": "~5.6.0",
-    "react-native-screens": "~4.16.0",
-    "react-native-worklets": "0.5.1",
-    "utf8": "^3.0.0"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.25.2",
-    "@types/base-64": "^1.0.2",
-    "@types/react": "~19.1.10",
-    "@types/utf8": "^3.0.3",
-    "tsx": "^4.20.3",
-    "typescript": "~5.9.2"
-  },
-  "private": true
+	"name": "tickoff",
+	"version": "0.0.5-alpha",
+	"main": "expo-router/entry",
+	"scripts": {
+		"start": "expo start",
+		"android": "expo start --android",
+		"ios": "expo start --ios",
+		"web": "expo start --web"
+	},
+	"dependencies": {
+		"@dev-plugins/async-storage": "^0.4.0",
+		"@react-native-async-storage/async-storage": "2.2.0",
+		"base-64": "^1.0.0",
+		"expo": "~55.0.12",
+		"expo-blur": "~55.0.13",
+		"expo-constants": "~55.0.12",
+		"expo-dev-client": "~55.0.23",
+		"expo-font": "~55.0.6",
+		"expo-linking": "~55.0.11",
+		"expo-navigation-bar": "~55.0.11",
+		"expo-router": "~55.0.11",
+		"expo-splash-screen": "~55.0.16",
+		"expo-status-bar": "~55.0.5",
+		"expo-updates": "~55.0.19",
+		"react": "19.2.0",
+		"react-native": "0.83.4",
+		"react-native-gesture-handler": "~2.30.0",
+		"react-native-reanimated": "4.2.1",
+		"react-native-safe-area-context": "~5.6.2",
+		"react-native-screens": "~4.23.0",
+		"react-native-worklets": "0.7.2",
+		"utf8": "^3.0.0"
+	},
+	"devDependencies": {
+		"@babel/core": "^7.29.0",
+		"@types/base-64": "^1.0.2",
+		"@types/react": "~19.2.14",
+		"@types/utf8": "^3.0.3",
+		"tsx": "^4.21.0",
+		"typescript": "~5.9.2"
+	},
+	"private": true
 }
