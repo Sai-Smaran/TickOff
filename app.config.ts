@@ -5,7 +5,7 @@ const appConfig: ExpoConfig = {
 	name: "TickOff",
 	slug: "TickOff",
 	scheme: "tickoff",
-	version: process.env.APP_ENV === "dev" ? "0.0.5-dev" : "0.0.5-alpha",
+	version: process.env.APP_ENV === "dev" ? "0.0.5-alpha-dev" : "0.0.5-alpha",
 	orientation: "portrait",
 	icon:
 		process.env.APP_ENV === "dev"
@@ -18,6 +18,8 @@ const appConfig: ExpoConfig = {
 		resizeMode: "contain",
 		backgroundColor: "#021526",
 	},
+	githubUrl: "https://github.com/Sai-Smaran/TickOff",
+	description: "A simple task note.",
 	plugins: [
 		["expo-dev-client"],
 		"expo-font",
@@ -44,7 +46,6 @@ const appConfig: ExpoConfig = {
 			backgroundImage: "./assets/adaptive-icon-background.png",
 			monochromeImage: "./assets/mono-icon.png",
 			backgroundColor: "#021526",
-			
 		},
 		package:
 			process.env.APP_ENV === "dev"
