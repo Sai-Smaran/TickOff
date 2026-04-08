@@ -36,6 +36,7 @@ import {
 } from "expo-router";
 import type { MinifiedTaskItem, TaskItem } from "@/types";
 import { SharedTaskPrompt } from "@/ui/sharedTaskPrompt";
+import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -49,6 +50,7 @@ export default function Index() {
 	const { tasks: newSharedTasks } = useLocalSearchParams<{ tasks?: string }>();
 
 	const { getItem, removeItem, setItem } = useAsyncStorage("tasks");
+
 	const [loaded, setLoaded] = useState(false);
 	const [tasks, setTasks] = useState<TaskItem[] | undefined>(undefined);
 	const [taskToEdit, setTaskToEdit] = useState<number | undefined>();
@@ -57,6 +59,8 @@ export default function Index() {
 	const [URLsharedTask, setURLSharedTask] = useState<
 		MinifiedTaskItem | undefined
 	>();
+
+	const safeAreaInsets = useSafeAreaInsets();
 
 	async function fetchTasks() {
 		await getItem()
@@ -350,66 +354,71 @@ export default function Index() {
 	return (
 		<GestureHandlerRootView
 			onLayout={onLayoutRootView}
-			style={styles.container}
+			style={{flex: 1}}
 		>
-			{creationModalVisible && (
-				<CreateTask
-					onRequestClose={() => {
-						setCreationModalVisible(false);
-						setTaskToEdit(() => undefined);
+			<SafeAreaProvider style={styles.container}>
+				{creationModalVisible && (
+					<CreateTask
+						onRequestClose={() => {
+							setCreationModalVisible(false);
+							setTaskToEdit(() => undefined);
+						}}
+						visibility={creationModalVisible}
+						onSubmitEditing={(i, newTask) => {
+							if (i !== undefined) {
+								updateTask(i, newTask);
+							} else {
+								createTask(newTask);
+							}
+							setCreationModalVisible(() => false);
+							setTaskToEdit(() => undefined);
+						}}
+						taskToEdit={taskToEdit}
+						tasks={tasks}
+					/>
+				)}
+				<SharedTaskPrompt
+					visible={sharedTaskPromptVisible}
+					taskToAdd={
+						URLsharedTask !== undefined
+							? URLsharedTask
+							: { t: "Test", c: false }
+					}
+					onRequestClose={() => setSharedTaskPromptVisible((prev) => !prev)}
+					onAccept={() => {
+						URLsharedTask && handleShareTaskConversion(URLsharedTask);
 					}}
-					visibility={creationModalVisible}
-					onSubmitEditing={(i, newTask) => {
-						if (i !== undefined) {
-							updateTask(i, newTask);
-						} else {
-							createTask(newTask);
-						}
-						setCreationModalVisible(() => false);
-						setTaskToEdit(() => undefined);
+				/>
+				<View style={{ flexGrow: 1 }}>
+					<FlatList
+						contentContainerStyle={{ flexGrow: 1 }}
+						data={tasks}
+						initialNumToRender={9}
+						renderItem={RI}
+						removeClippedSubviews
+						keyExtractor={keyExtractor}
+						ListEmptyComponent={NoTasks}
+						ListHeaderComponent={ListHeader}
+						ListHeaderComponentStyle={{ width: "100%" }}
+						// StickyHeaderComponent={ListHeader}
+						stickyHeaderHiddenOnScroll
+						maxToRenderPerBatch={15}
+						stickyHeaderIndices={[0]}
+					/>
+				</View>
+				<Button
+					style={{
+						position: "absolute",
+						bottom: 0,
+						right: 0,
+						margin: 50,
+						marginBottom: safeAreaInsets.bottom + 50
 					}}
-					taskToEdit={taskToEdit}
-					tasks={tasks}
+					onPress={() => {
+						setCreationModalVisible(true);
+					}}
 				/>
-			)}
-			<SharedTaskPrompt
-				visible={sharedTaskPromptVisible}
-				taskToAdd={
-					URLsharedTask !== undefined ? URLsharedTask : { t: "Test", c: false }
-				}
-				onRequestClose={() => setSharedTaskPromptVisible((prev) => !prev)}
-				onAccept={() => {
-					URLsharedTask && handleShareTaskConversion(URLsharedTask);
-				}}
-			/>
-			<View style={{ flexGrow: 1 }}>
-				<FlatList
-					contentContainerStyle={{ flexGrow: 1 }}
-					data={tasks}
-					initialNumToRender={9}
-					renderItem={RI}
-					removeClippedSubviews
-					keyExtractor={keyExtractor}
-					ListEmptyComponent={NoTasks}
-					ListHeaderComponent={ListHeader}
-					ListHeaderComponentStyle={{ width: "100%" }}
-					// StickyHeaderComponent={ListHeader}
-					stickyHeaderHiddenOnScroll
-					maxToRenderPerBatch={15}
-					stickyHeaderIndices={[0]}
-				/>
-			</View>
-			<Button
-				style={{
-					position: "absolute",
-					bottom: 0,
-					right: 0,
-					margin: 50,
-				}}
-				onPress={() => {
-					setCreationModalVisible(true);
-				}}
-			/>
+			</SafeAreaProvider>
 		</GestureHandlerRootView>
 	);
 }
