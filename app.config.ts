@@ -13,7 +13,6 @@ const appConfig: ExpoConfig = {
 			: "./assets/icon.png",
 	jsEngine: "hermes",
 	userInterfaceStyle: "automatic",
-	newArchEnabled: true,
 	splash: {
 		image: "./assets/splash-icon.png",
 		resizeMode: "contain",
@@ -47,7 +46,6 @@ const appConfig: ExpoConfig = {
 			backgroundColor: "#021526",
 			
 		},
-		edgeToEdgeEnabled: true,
 		package:
 			process.env.APP_ENV === "dev"
 				? "com.sai.tickoff_dev"
