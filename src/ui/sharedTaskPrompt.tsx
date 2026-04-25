@@ -9,7 +9,7 @@ import {
 import { BlurView } from "expo-blur";
 import { AntDesign } from "@expo/vector-icons";
 
-import type { MinifiedTaskItem, TaskItem } from "@/types";
+import type { MinifiedTaskItem } from "@/types";
 
 import CheckBox from "@/components/checkbox";
 import color from "@/constants/colors";
@@ -39,14 +39,14 @@ export function SharedTaskPrompt({
 		>
 			<Pressable onPress={() => onRequestClose()} style={{ flex: 1 }}>
 				<BlurView
-					experimentalBlurMethod="dimezisBlurView"
+					blurMethod="none"
 					tint="systemMaterialDark"
 					style={{ flex: 1 }}
 				/>
 			</Pressable>
 			<View
 				style={[
-					StyleSheet.absoluteFillObject,
+					StyleSheet.absoluteFill,
 					{ justifyContent: "center", alignItems: "center" },
 				]}
 			>

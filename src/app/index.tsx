@@ -78,7 +78,6 @@ export default function Index() {
 	}, [tasks]);
 
 	function createTask(t?: TaskItem) {
-		// t && setTasks(() => (tasks ? [...tasks, t] : [t]));
 		t && setTasks(() => (tasks ? tasks.concat(t) : [t]));
 	}
 
@@ -89,7 +88,6 @@ export default function Index() {
 	}
 
 	function deleteTask(id: number) {
-		// setTasks((prevTasks) => prevTasks?.filter((_, idx) => id !== idx));
 		setTasks((prevTasks) =>
 			// Similar to [...prevTasks?.slice(0, id), ...prevTasks.slice(id + 1)]
 			prevTasks?.slice(0, id).concat(prevTasks.slice(id + 1)),
@@ -213,10 +211,6 @@ export default function Index() {
 			}
 		}
 
-		// minifiedTask.s?.forEach((val) => {
-		// restoredSubTasks.push({ title: val.t, completed: val.c });
-		// });
-
 		const finalSharedTask: TaskItem = {
 			title: minifiedTask.t,
 			completed: minifiedTask.c,
@@ -239,7 +233,6 @@ export default function Index() {
 		useCallback(() => {
 			tasks && saveTasks();
 
-			// if (!__DEV__) return;
 			const devMenuItems: ExpoDevMenuItem[] = [
 				{
 					name: "Clear tasks",

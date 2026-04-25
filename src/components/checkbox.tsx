@@ -1,7 +1,6 @@
 import { Pressable, StyleProp, StyleSheet, ViewStyle } from "react-native";
 import { FontAwesome6 } from "@expo/vector-icons";
 import Animated, {
-	Easing,
 	interpolateColor,
 	useAnimatedStyle,
 	useSharedValue,
@@ -81,6 +80,5 @@ const styles = StyleSheet.create({
 		borderWidth: 2,
 		borderRadius: 5,
 		borderColor: color.ter,
-		// filter: "drop-shadow(0px 0px 10px black);",
 	},
 });
